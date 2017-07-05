@@ -48,7 +48,7 @@ class Replacer {
   findVariableName(value:string):string {
     for (let priorWeight = this.prior.length; priorWeight > -1; priorWeight--) {
       const valueToName:valueToName = this.variablePriorMap[priorWeight];
-      const variableName:string|undefined = value && valueToName[value];
+      const variableName: string | undefined = valueToName && valueToName[value];
       if (variableName) {
         return variableName;
       }

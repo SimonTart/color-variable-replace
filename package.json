@@ -11,14 +11,36 @@
         "Other"
     ],
     "activationEvents": [
-        "*"
+        "onCommand:extension.colorReplace"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "commands": [{
             "command": "extension.colorReplace",
             "title": "color replace"
-        }]
+        }],
+        "keybindings": [{
+            "command": "extension.colorReplace",
+            "key": "ctrl+shift+c",
+            "mac": "ctrl+shift+c",
+            "when": "editorTextFocus"
+        }],
+        "configuration": {
+            "type": "object",
+            "title": "colorReplace Configuration",
+            "properties": {
+                "colorReplace.variableFiles": {
+                    "type": "array",
+                    "default": [],
+                    "description": "color variable files"
+                },
+                "colorReplace.prior": {
+                    "type": "array",
+                    "default": [],
+                    "description": "color variable name you first want use"
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",

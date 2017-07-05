@@ -6,7 +6,7 @@ import Replacer from './replacer';
 // import Completor from './completor';
 const path = require('path');
 
-const CONFIG_NAME:string = "color_variable_replace";
+const CONFIG_NAME: string = "colorReplace";
 const COMMAND:string = "colorReplace"
 export function activate(context: vscode.ExtensionContext) {
     const rootPath: string | undefined = vscode.workspace.rootPath;
