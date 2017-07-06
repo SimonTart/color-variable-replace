@@ -1,5 +1,5 @@
 # color-variable-replace
-![color-variable-replace](./src/color-variable-replacer.gif)
+![color-variable-replace](https://github.com/SimonTart/color-variable-replace/blob/master/src/color-variable-replacer.gif)
 ## Features
 
 根据颜色变量文件，替换文件的十六进制颜色值为变量
