@@ -1,5 +1,5 @@
 # color-variable-replace
-
+()['./src/color-variable-replacer.gif']
 ## Features
 
 根据颜色变量文件，替换文件的十六进制颜色值为变量
@@ -20,5 +20,8 @@
   "colorReplace.prior": ["kolor", "color"]
 }
 ```
+## How use
+1. `ctrl+shift+c`
+2. `cmd+shift+p` and execute color replace command
 
 ## Release Notes
