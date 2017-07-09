@@ -1,63 +1,81 @@
 {
-    "name": "color-variable-replace",
-    "displayName": "color-variable-replace",
-    "description": "replace color with color variable",
-    "version": "1.0.6",
-    "publisher": "color-variable-replace",
-    "engines": {
-        "vscode": "^1.13.0"
-    },
-    "categories": [
-        "Other"
+  "name": "color-variable-replace",
+  "displayName": "color-variable-replace",
+  "description": "replace color with color variable",
+  "version": "1.0.6",
+  "publisher": "color-variable-replace",
+  "engines": {
+    "vscode": "^1.13.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:Stylus",
+    "onLanguage:Less",
+    "onLanguage:Sass",
+    "onCommand:extension.colorReplace"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "extension.colorReplace",
+        "title": "color replace"
+      }
     ],
-    "activationEvents": [
-        "onCommand:extension.colorReplace"
+    "keybindings": [
+      {
+        "command": "extension.colorReplace",
+        "key": "ctrl+shift+c",
+        "mac": "ctrl+shift+c",
+        "when": "editorTextFocus"
+      }
     ],
-    "main": "./out/src/extension",
-    "contributes": {
-        "commands": [
-            {
-                "command": "extension.colorReplace",
-                "title": "color replace"
-            }
-        ],
-        "keybindings": [
-            {
-                "command": "extension.colorReplace",
-                "key": "ctrl+shift+c",
-                "mac": "ctrl+shift+c",
-                "when": "editorTextFocus"
-            }
-        ],
-        "configuration": {
-            "type": "object",
-            "title": "colorReplace Configuration",
-            "properties": {
-                "colorReplace.variableFiles": {
-                    "type": "array",
-                    "default": [],
-                    "description": "color variable files"
-                },
-                "colorReplace.prior": {
-                    "type": "array",
-                    "default": [],
-                    "description": "color variable name you first want use"
-                }
-            }
+    "configuration": {
+      "type": "object",
+      "title": "colorReplace Configuration",
+      "properties": {
+        "colorReplace.variableFiles": {
+          "type": "array",
+          "default": [],
+          "description": "定义颜色变量的文件"
+        },
+        "colorReplace.prior": {
+          "type": "array",
+          "default": [],
+          "description": "变量名的优先级，支持字符串和正则表达式"
+        },
+        "colorReplace.unReplaceWarn": {
+            "type": "boolean",
+            "default": true,
+            "description": "当有没有颜色被替换的时候提示"
+        },
+        "colorReplace.insertType": {
+            "type": "string",
+            "default": "var",
+            "description": "自动补全的时候使用变量值还是颜色值"
+        },
+        "colorReplace.onSave": {
+            "type": "boolean",
+            "default": false,
+            "description": "保存文件的时候自动替换"
         }
-    },
-    "scripts": {
-        "vscode:publish": "vsce publish 1.0.5 --baseImagesUrl https://github.com/SimonTart/color-variable-replace/blob/master",
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install",
-        "test": "node ./node_modules/vscode/bin/test"
-    },
-    "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+      }
     }
+  },
+  "scripts": {
+    "vscode:publish": "vsce publish 1.0.5 --baseImagesUrl https://github.com/SimonTart/color-variable-replace/blob/master",
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "node ./node_modules/vscode/bin/test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^2.2.32",
+    "@types/node": "^6.0.79",
+    "mocha": "^2.3.3",
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0"
+  }
 }

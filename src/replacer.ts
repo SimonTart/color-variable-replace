@@ -1,20 +1,26 @@
 import { Position, Range, window, TextEditor, TextDocument, TextEditorEdit } from 'vscode';
 import { parseVariableByPrior, readFile } from './utils';
-import { Prior, VariablePriorMap, ValueToName } from './delcarations';
+import { Prior, VariablePriorMap, ColorValueToName, Config } from './delcarations';
 
 export class Replacer {
   private variableFiles: string[];
   private prior: Prior;
+  private unReplaceWarn: boolean;
   private variablePriorMap: VariablePriorMap;
 
-  constructor(variableFiles: string[], prior: Prior) {
-    this.variableFiles = variableFiles;
-    this.prior = prior;
+  constructor(config: Config) {
+    this.variableFiles = config.variableFiles;
+    this.prior = config.prior;
+    this.unReplaceWarn = config.unReplaceWarn;
     this.variablePriorMap = {};
   }
 
   public async replaceFile(): Promise<void> {
-    await this.initialVariable();
+    try {
+      await this.initialVariable();
+    } catch (err) {
+      console.error(err);
+    }
     this.replace();
   }
 
@@ -30,28 +36,43 @@ export class Replacer {
     const content: string = document.getText(range);
 
     const reg: RegExp = /#([\da-fA-F]{6}|[\da-fA-F]{3})/g;
+    let unReplacedCount: number = 0;
     const replaced: string = content.replace(reg, (match: string) => {
-      return this.findVariableName(match);
+      const name: string = this.findVariableName(match);
+      if (name) {
+        return name;
+      } else {
+        unReplacedCount ++;
+
+        return match;
+      }
     });
 
     activeTextEditor.edit((textEditor: TextEditorEdit) => {
-      return textEditor.replace(range, replaced);
+      textEditor.replace(range, replaced);
+      if (this.unReplaceWarn && unReplacedCount > 0) {
+        window.showWarningMessage(`有${unReplacedCount}个颜色值没有找到对应的变量`);
+      }
     });
   }
 
   private async initialVariable(): Promise<void> {
-    this.variablePriorMap = await parseVariableByPrior(this.variableFiles, this.prior);
+    try {
+      this.variablePriorMap = await parseVariableByPrior(this.variableFiles, this.prior);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
-  private findVariableName(value: string): string {
+  private findVariableName(value: string): string | undefined {
     for (let priorWeight: number = this.prior.length; priorWeight > -1; priorWeight--) {
-      const valueToName: ValueToName = this.variablePriorMap[priorWeight];
+      const valueToName: ColorValueToName = this.variablePriorMap[priorWeight];
       const variableName: string | undefined = valueToName && valueToName[value];
       if (variableName) {
         return variableName;
       }
     }
 
-    return value;
+    return undefined;
   }
 }

@@ -1,50 +1,87 @@
+import { Key } from 'readline';
 import * as vscode from 'vscode';
-import { prior, variablePriorMap, parseVariableByPrior } from './utils';
+import { ColorValueToName } from './delcarations';
+import { parseVariableByPrior } from './utils';
+import { Prior, VariablePriorMap, Config } from './delcarations';
 
-class testItem extends vscode.CompletionItem {
-  constructor(label, kind) {
-    super(label, kind);
-    this.label = label;
-    this.kind = kind;
-    this.documentation = "ASdasdasda"
-  }
-}
-class Comppletor {
-  variableFiles: string[]
-  prior: prior
-  variablePriorMap: variablePriorMap
-  constructor(variableFiles: string[], prior: prior) {
-    this.variableFiles = variableFiles;
-    this.prior = prior;
-  }
+// class ColorCompletionIem implements vscode.CompletionItem {
 
-  async initialVariables() {
-    this.variablePriorMap = await parseVariableByPrior(this.variableFiles, this.prior);
+// }
+
+export class Completor {
+  private variableFiles: string[];
+  private prior: Prior;
+  private variablePriorMap: VariablePriorMap;
+  private allColorValues: string[];
+  private insertType: string;
+  constructor(config: Config) {
+    this.insertType = config.inertType;
+    this.variableFiles = config.variableFiles;
+    this.prior = config.prior;
+    this.initialVariables();
   }
 
-  provideCompletionItems(document: vscode.TextDocument, position: vscode.Position){
-    const textCurrentLine = document.getText(document.lineAt(position).range);
-    if (!this.variablePriorMap) {
-      // await this.initialVariables();
+  public provideCompletionItems(document: vscode.TextDocument, position: vscode.Position): vscode.CompletionItem[] {
+    const start: vscode.Position = new vscode.Position(position.line, 0);
+    const range: vscode.Range = new vscode.Range(start, position);
+    const currentLine: string = document.getText(range);
+    const currentColorIndex: number = currentLine.lastIndexOf('#');
+    const currentColor: string = currentColorIndex > -1 ? currentLine.slice(currentColorIndex) : '';
+    if (this.variablePriorMap && currentColor && currentColor.length > 1 && currentColor.length < 7) {
+      const colors: string[] = this.getPossibleColorValue(currentColor);
+
+      return colors.map((value: string) => {
+        const item: vscode.CompletionItem = new vscode.CompletionItem(value);
+        const name: string = this.findVariableName(value);
+        item.detail = name;
+        if (this.insertType === 'var') {
+          item.insertText = name;
+        } else {
+          item.insertText = value;
+        }
+
+        return item;
+      });
+    } else {
+      return [];
     }
-    console.log(textCurrentLine);
-    return [new testItem("#111", 15), new testItem("#2222", 15)];
-    // return new Promise<vscode.CompletionItem[]>((resolve) => {
-    //   resolve([new vscode.CompletionItem("111"), new vscode.CompletionItem("2222")]);
-    // });
   }
 
-  resolveCompletionItem() {
-    return new testItem("#111", 15);
+  private async initialVariables(): Promise<void> {
+    if (this.variablePriorMap) {
+      return;
+    }
+    this.variablePriorMap = await parseVariableByPrior(this.variableFiles, this.prior);
+    this.allColorValues = Object.keys(this.variablePriorMap)
+                                .map((key: string) => this.variablePriorMap[key])
+                                .map(
+                                  (valueToName: ColorValueToName) => {
+                                  return Object.keys(valueToName)
+                                  .reduce(
+                                    (pre: string[], value: string) => {
+                                      pre.push(value);
+
+                                      return pre;
+                                    },
+                                    []
+                                  );
+                                })
+                                .reduce((result: string[], arr: string[]) => result.concat(arr), []);
   }
 
-  getVariables(text: string): Thenable<vscode.CompletionItem[]> {
-    console.log(text);
-    return new Promise((resolve, reject) => {
-      resolve([new vscode.CompletionItem("#111", 15), new vscode.CompletionItem("#2222", 15)]);
-    });
+  private getPossibleColorValue(key: string): string[] {
+    return this.allColorValues.filter((value: string) => value.startsWith(key));
+  }
+
+  private findVariableName(value: string): string | undefined {
+    for (let priorWeight: number = this.prior.length; priorWeight > -1; priorWeight--) {
+      const valueToName: ColorValueToName = this.variablePriorMap[priorWeight];
+      const variableName: string | undefined = valueToName && valueToName[value];
+      if (variableName) {
+        return variableName;
+      }
+    }
+
+    return '';
   }
 }
-
-
-export default Comppletor;

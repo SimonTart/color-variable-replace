@@ -1,23 +1,9 @@
-const fs = require('fs');
+import * as fs from 'fs';
+import { ColorNameToValue, ColorValueToName, Prior, VariablePriorMap } from './delcarations';
 
-export interface nameToValue {
-  [prop:string]:string
-}
-
-export interface valueToName {
-  [prop: string]: string
-}
-
-export interface variablePriorMap {
-  [props: string]: valueToName
-}
-
-export type prior  = (string|RegExp)[]
-
-
-export function readFile(path: string) {
-  return new Promise<string>((resolve, reject) => {
-    fs.readFile(path, 'utf8', (err, data) => {
+export function readFile(path: string): Promise<string> {
+  return new Promise((resolve: (result: string) => void, reject: (error: NodeJS.ErrnoException) => void): void => {
+    fs.readFile(path, 'utf8', (err: NodeJS.ErrnoException , data: string) => {
       if (err) {
         reject(err);
       } else {
@@ -27,13 +13,13 @@ export function readFile(path: string) {
   });
 }
 
-export async function parseVariable(variableFiles: string[]){
+export async function parseVariable(variableFiles: string[]): Promise<ColorNameToValue> {
   const reg: RegExp = /([a-zA-Z_\$][a-zA-Z0-9_\-\$]*)\s*=\s*(#(?:[\da-fA-F]{6}|[\da-fA-F]{3}))/g;
-  const nameToValue:nameToValue = {};
+  const nameToValue: ColorNameToValue = {};
   for (const path of variableFiles) {
-    const content = await readFile(path);
+    const content: string = await readFile(path);
     while (true) {
-      const result = reg.exec(content);
+      const result: RegExpExecArray = reg.exec(content);
       if (!result) {
         break;
       } else {
@@ -41,14 +27,13 @@ export async function parseVariable(variableFiles: string[]){
       }
     }
   }
-  return new Promise<nameToValue>((resolve,reject) => {
-    resolve(nameToValue);
-  });
+
+  return nameToValue;
 }
 
-export function getPriorWeight(name: string, prior: prior):number {
-  const priorItem = prior.find((p: string | Object) => {
-    if (typeof p === "string" && name.indexOf(p) > -1) {
+export function getPriorWeight(name: string, prior: Prior): number {
+  const priorItem: string | RegExp = prior.find((p: string | RegExp) => {
+    if (typeof p === 'string' && name.indexOf(p) > -1) {
       return true;
     } else if (p instanceof RegExp && p.test(name)) {
       return true;
@@ -58,22 +43,21 @@ export function getPriorWeight(name: string, prior: prior):number {
   });
 
   if (!priorItem) {
-    return 0
+    return 0;
   } else {
     return prior.length - prior.indexOf(priorItem);
   }
 }
 
-export async function parseVariableByPrior(variableFiles: string[], prior: prior) {
-  const nameToValue: nameToValue = await parseVariable(variableFiles);
-  const variablePriorMap: variablePriorMap = {};
-  for(const name in nameToValue) {
+export async function parseVariableByPrior(variableFiles: string[], prior: Prior): Promise<VariablePriorMap> {
+  const nameToValue: ColorNameToValue = await parseVariable(variableFiles);
+  const variablePriorMap: VariablePriorMap = {};
+  for (const name of Object.keys(nameToValue)) {
     const priorWeight: number = getPriorWeight(name, prior);
-    const valueToName: valueToName = variablePriorMap[priorWeight] || {};
+    const valueToName: ColorValueToName = variablePriorMap[priorWeight] || {};
     valueToName[nameToValue[name]] = name;
     variablePriorMap[priorWeight] = valueToName;
   }
-  return new Promise<variablePriorMap>((resolve) => {
-    resolve(variablePriorMap);
-  });
+
+  return variablePriorMap;
 }
