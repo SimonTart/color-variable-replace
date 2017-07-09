@@ -1,4 +1,4 @@
-# color-variable-replace
+# [color-variable-replace](https://marketplace.visualstudio.com/items?itemName=color-variable-replace.color-variable-replace)
 ## Features
 Sometimes using css extension like Less, Sass, Stylus. We usually define color variable in one or mutiple files.This extension can help you replace hex color value with color variable name.
 
