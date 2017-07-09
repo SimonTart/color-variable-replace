@@ -1,65 +1,57 @@
-import { window, Position, Range } from 'vscode';
-import { readFile, variablePriorMap, parseVariableByPrior } from './utils';
+import { Position, Range, window, TextEditor, TextDocument, TextEditorEdit } from 'vscode';
+import { parseVariableByPrior, readFile } from './utils';
+import { Prior, VariablePriorMap, ValueToName } from './delcarations';
 
-interface valueToName {
-  [prop:string]:string
-}
+export class Replacer {
+  private variableFiles: string[];
+  private prior: Prior;
+  private variablePriorMap: VariablePriorMap;
 
-interface priorMap {
-  [props:string]:valueToName
-}
-
-class Replacer {
-  variableFiles:string[]
-  prior:any[]
-  variablePriorMap: variablePriorMap
-
-  constructor(variableFiles:string[], prior:any[]) {
+  constructor(variableFiles: string[], prior: Prior) {
     this.variableFiles = variableFiles;
     this.prior = prior;
     this.variablePriorMap = {};
   }
 
-  async initialVariable() {
-    this.variablePriorMap = await parseVariableByPrior(this.variableFiles, this.prior);
+  public async replaceFile(): Promise<void> {
+    await this.initialVariable();
+    this.replace();
   }
 
-  async replace() {
-    const activeTextEditor: any = window.activeTextEditor;
+  private async replace(): Promise<void> {
+    const activeTextEditor: TextEditor = window.activeTextEditor;
     if (!activeTextEditor) {
       return;
     }
-    const document = activeTextEditor.document;
-    const start = new Position(0, 0);
-    const end = new Position(document.lineCount - 1, document.lineAt(document.lineCount - 1).text.length);
-    const range = new Range(start, end);
-    const content:string = document.getText(range);
+    const document: TextDocument = activeTextEditor.document;
+    const start: Position = new Position(0, 0);
+    const end: Position = new Position(document.lineCount - 1, document.lineAt(document.lineCount - 1).text.length);
+    const range: Range = new Range(start, end);
+    const content: string = document.getText(range);
 
     const reg: RegExp = /#([\da-fA-F]{6}|[\da-fA-F]{3})/g;
-    const replaced:string = content.replace(reg, (match) => {
+    const replaced: string = content.replace(reg, (match: string) => {
       return this.findVariableName(match);
     });
 
-    activeTextEditor.edit((textEditor) => {
+    activeTextEditor.edit((textEditor: TextEditorEdit) => {
       return textEditor.replace(range, replaced);
-    })
+    });
   }
 
-  findVariableName(value:string):string {
-    for (let priorWeight = this.prior.length; priorWeight > -1; priorWeight--) {
-      const valueToName:valueToName = this.variablePriorMap[priorWeight];
+  private async initialVariable(): Promise<void> {
+    this.variablePriorMap = await parseVariableByPrior(this.variableFiles, this.prior);
+  }
+
+  private findVariableName(value: string): string {
+    for (let priorWeight: number = this.prior.length; priorWeight > -1; priorWeight--) {
+      const valueToName: ValueToName = this.variablePriorMap[priorWeight];
       const variableName: string | undefined = valueToName && valueToName[value];
       if (variableName) {
         return variableName;
       }
     }
+
     return value;
   }
-
-  async replaceFile() {
-    await this.initialVariable();
-    this.replace();
-  }
 }
-
-export default Replacer;
