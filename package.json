@@ -2,7 +2,7 @@
     "name": "color-variable-replace",
     "displayName": "color-variable-replace",
     "description": "replace color with color variable",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "publisher": "color-variable-replace",
     "engines": {
         "vscode": "^1.13.0"
