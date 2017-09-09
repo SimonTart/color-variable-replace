@@ -23,7 +23,7 @@ export async function parseVariable(variableFiles: string[]): Promise<ColorNameT
       if (!result) {
         break;
       } else {
-        nameToValue[result[1]] = result[2];
+        nameToValue[result[1]] = result[2].toUpperCase();
       }
     }
   }

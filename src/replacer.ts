@@ -38,7 +38,7 @@ export class Replacer {
     const reg: RegExp = /#([\da-fA-F]{6}|[\da-fA-F]{3})/g;
     let unReplacedCount: number = 0;
     const replaced: string = content.replace(reg, (match: string) => {
-      const name: string = this.findVariableName(match);
+      const name: string = this.findVariableName(match.toUpperCase());
       if (name) {
         return name;
       } else {
